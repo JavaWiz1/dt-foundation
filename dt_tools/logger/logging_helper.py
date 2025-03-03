@@ -18,10 +18,11 @@ Example::
 
 """
 import functools
+import inspect
 import logging
 import sys
 import time
-from typing import List
+from typing import Dict, List
 
 from loguru import logger as LOGGER
 
@@ -51,7 +52,7 @@ DEFAULT_CONSOLE_LOGFMT = "<level>{message}</level>"
 DEFAULT_DEBUG_LOGFMT =  "<green>{time:HH:mm:ss}</green> |<level>{level: <8}</level>|<cyan>{module:20}</cyan>|<cyan>{line:4}</cyan>| <level>{message}</level>"
 """For console/file logging, timestamp \|level\|method name\|lineno\|message"""
 
-DEFAULT_DEBUG_LOGFMT2 =  "<green>{time:HH:mm:ss}</green> |<level>{level: <8}</level>|<cyan>{name:15}|{module:20}|{line:4}</cyan>| <level>{message}</level>"
+DEFAULT_DEBUG_LOGFMT2 =  "<green>{time:HH:mm:ss}</green> |<level>{level: <8}</level>|<yellow>{name:15}|{module:20}|{line:4}</yellow>| <level>{message}</level>"
 """For console/file logging, timestamp \|level\|method name\|lineno\|message"""
 
 def configure_logger(log_target = sys.stderr, 
@@ -111,7 +112,7 @@ def configure_logger(log_target = sys.stderr,
             LOGGER.error(f'configure_logger(): {ex}')
 
     # Intercept standard logging
-    logging.basicConfig(handlers=[_InterceptHandler()], level=logging.DEBUG)    
+    logging.basicConfig(handlers=[_InterceptHandler()], level=0, force=True)    
 
     if brightness is not None:
         set_log_levels_brightness(brightness)
@@ -144,16 +145,17 @@ def configure_logger(log_target = sys.stderr,
     return hndl
 
 class _InterceptHandler(logging.Handler):
-    def emit(self, record):
+    def emit(self, record: logging.LogRecord) -> None:
         # Get corresponding Loguru level
+        level: str | int
         try:
             level = LOGGER.level(record.levelname).name
         except ValueError:
             level = record.levelno
 
         # Find caller to get correct stack depth
-        frame, depth = logging.currentframe(), 2
-        while frame.f_back and frame.f_code.co_filename == logging.__file__:
+        frame, depth = inspect.currentframe(), 0
+        while frame and (depth == 0 or frame.f_code.co_filename == logging.__file__):
             frame = frame.f_back
             depth += 1
 
@@ -224,6 +226,35 @@ def waitfor_complete():
     """
     while not LOGGER.complete():
         time.sleep(.1)
+
+# =============================================================================================
+def disable_non_loguru_loggers():
+    loggers = [logging.getLogger(name) for name in logging.root.manager.loggerDict]
+    for lgr in loggers:
+       logging.getLogger(lgr.name).disabled = True
+
+def enable_non_loguru_loggers(logger_names: List[str]):
+    for lgr in logger_names:
+        logging.getLogger(lgr).disabled = False
+
+def get_non_loguru_loggers() -> List[Dict[str, Dict]]:
+    logger_list = []
+    # loggers = [logging.getLogger(name) for name in logging.root.manager.loggerDict]
+    loggers = [logging.getLogger(name) for name in logging.RootLogger.manager.loggerDict]
+    for lgr in loggers:
+        lgr.level
+        entry = {
+            "name": lgr.name,
+            "disabled": lgr.disabled, 
+            "parent": lgr.parent.name,
+            "filters": lgr.filters,
+            "handlers": lgr.handlers,
+            "level": lgr.level,
+            "elevel": lgr.getEffectiveLevel(),
+        }
+        logger_list.append(entry)
+    
+    return logger_list
 
 # =============================================================================================
 # == Logging Decorators =======================================================================
