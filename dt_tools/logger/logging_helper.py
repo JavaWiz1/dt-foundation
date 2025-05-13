@@ -43,7 +43,7 @@ from loguru import logger as LOGGER
 # thread      The thread in which the logging call was made
 # time        The aware local time when the logging call was made
 
-DEFAULT_FILE_LOGFMT = "<green>{time:MM/DD/YY HH:mm:ss}</green> |<level>{level: <8}</level>|<cyan>{name:18}</cyan>|<cyan>{line:4}</cyan>| <level>{message}</level>"
+DEFAULT_FILE_LOGFMT = "<green>{time:MM/DD/YY HH:mm:ss}</green> |<level>{level: <8}</level>|<cyan>{file:18}</cyan>|<cyan>{line:4}</cyan>| <level>{message}</level>"
 """For file logging, format- timestamp \|level\|method name\|lineno\|message"""
 
 DEFAULT_CONSOLE_LOGFMT = "<level>{message}</level>"
