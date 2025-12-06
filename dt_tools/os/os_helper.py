@@ -274,10 +274,16 @@ class OSHelper():
         buffer = []
         with open('/proc/cpuinfo','r') as fh:
             buffer = fh.readlines()
+
+        token = [x for x in buffer if x.startswith('Model')]
+        if 'Raspberry Pi' in token:
+            return True
+        
         token = [x for x in buffer if x.startswith('Hardware')]
         hw = token[0].split(":")[1].strip()
         if hw.startswith("BCM"):
             return True
+        
         return False
     
     @staticmethod

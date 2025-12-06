@@ -35,7 +35,7 @@ priority = "primary"
 set-api-tokens = 'dt_tools.cli.set_api_tokens_cli:main'
 
 [tool.poetry.group.dev.dependencies]
-sphinx-rtd-theme = "^2.0.0"
+# sphinx-rtd-theme = "^2.0.0"
 
 [build-system]
 requires = ["poetry-core"]
