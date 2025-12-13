@@ -276,13 +276,15 @@ class OSHelper():
             buffer = fh.readlines()
 
         token = [x for x in buffer if x.startswith('Model')]
-        if 'Raspberry Pi' in token:
-            return True
+        if len(token) == 1:
+            if 'Raspberry Pi' in token[0]:
+                return True
         
         token = [x for x in buffer if x.startswith('Hardware')]
-        hw = token[0].split(":")[1].strip()
-        if hw.startswith("BCM"):
-            return True
+        if len(token) == 1:
+            hw = token[0].split(":")[1].strip()
+            if hw.startswith("BCM"):
+                return True
         
         return False
     
